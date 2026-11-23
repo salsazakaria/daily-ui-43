@@ -1,5 +1,7 @@
 # Salsa — Agent UI Kit (live bento)
 
+**Live site:** https://daily-ui-43.netlify.app
+
 A live, animated crypto & AI bento UI kit. Every card runs its own loop
 (typing, swaps, approvals, toggles) over frosted glass on a looping tulip video.
 
