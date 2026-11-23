@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salsa — Agent UI Kit</title>
+<meta name="description" content="A live, animated crypto &amp; AI bento UI kit by Salsa.">
+<meta property="og:title" content="Salsa — Agent UI Kit">
+<meta property="og:description" content="A live, animated crypto &amp; AI bento UI kit by Salsa.">
+<meta property="og:image" content="assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/Geist-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:G;src:url(assets/fonts/Geist-Regular.woff2);font-weight:400}
+@font-face{font-family:G;src:url(assets/fonts/Geist-Medium.woff2);font-weight:500}
+@font-face{font-family:G;src:url(assets/fonts/Geist-SemiBold.woff2);font-weight:600}
+@font-face{font-family:GM;src:url(assets/fonts/GeistMono-Regular.woff2);font-weight:400}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#EEF4F7;font-family:G;color:#161616;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+#bg{position:fixed;inset:0;width:100vw;height:100vh;object-fit:cover;display:block;background:#EEF4F7 url(assets/img/bg-poster.jpg) center/cover}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%);transform-origin:50% 50%}
+#kit{position:absolute;left:96px;top:0;height:917.1px;display:flex;gap:10.2px;align-items:center;transform:scale(1.1776);transform-origin:0 0}
+.col{display:flex;flex-direction:column;gap:10.2px}
+.tile{position:relative;border-radius:24px;background:rgba(255,255,255,.3);-webkit-backdrop-filter:blur(32px) saturate(1.25);backdrop-filter:blur(32px) saturate(1.25);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.42),0 14px 40px rgba(40,70,110,.07);overflow:hidden}
+.in{background:rgba(248,248,248,.62);border-radius:18px}
+.row{display:flex;align-items:center}
+.grow{flex:1}
+.mono{font-family:GM;letter-spacing:0}
+.sub{color:#A3A3A3}.mid{color:#7E7E7E}
+.ib{display:flex;align-items:center;justify-content:center;flex:none}
+.coll{overflow:hidden}
+.stack{display:inline-grid}.stack>*{grid-area:1/1;white-space:nowrap}
+.btn{display:flex;align-items:center;justify-content:center;border-radius:13px;height:36px;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden}
+.dark{background:#242424;color:#fff}
+.light{background:rgba(255,255,255,.75);color:#161616;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.chip{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:10px;background:rgba(247,247,247,.85);font-size:12px;font-weight:500}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.85);box-shadow:inset 0 0 0 1px #EDEDED;font-size:10px;font-weight:500}
+.hr{height:1px;background:rgba(0,0,0,.06)}
+.cb{width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center}
+</style></head><body>
+<video id="bg" autoplay muted loop playsinline preload="auto" poster="assets/img/bg-poster.jpg" aria-hidden="true"><source src="assets/video/bg.webm" type="video/webm"><source src="assets/video/bg.mp4" type="video/mp4"></video>
+<div id="stage"><div id="kit"></div></div>
+<script>
+// ---------------- icons ----------------
+const IC={
+ petal:'<rect x="9" y="2.5" width="6" height="19" rx="3" transform="rotate(45 12 12)"/><rect x="9" y="2.5" width="6" height="19" rx="3" transform="rotate(-45 12 12)"/>',
+ sparkles:'<path d="M10 5c.5 4 3 6.5 7 7-4 .5-6.5 3-7 7-.5-4-3-6.5-7-7 4-.5 6.5-3 7-7zM18.5 3v4M16.5 5h4"/>',
+ spark:'<path d="M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10z"/>',
+ eyeOff:'<path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 20L20 4"/>',
+ eye:'<path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',
+ moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>',
+ clock:'<circle cx="12" cy="13" r="7"/><path d="M12 9.5V13l2.5 1.5M5 4L3 6M19 4l2 2"/>',
+ refresh:'<path d="M19 12a7 7 0 11-2.2-5.1M19 4v4h-4"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+ up:'<path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/>', down:'<path d="M12 5v14M5.5 12.5L12 19l6.5-6.5"/>',
+ chev:'<path d="M6 9l6 6 6-6"/>',
+ kebab:'<circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/>',
+ pause:'<rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/>',
+ play:'<path d="M7 5v14l12-7z"/>',
+ shield:'<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/>',
+ unlink:'<path d="M8 11l-2 2a3.5 3.5 0 005 5l2-2M16 13l2-2a3.5 3.5 0 00-5-5l-2 2M4 4l16 16"/>',
+ chart:'<path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/>',
+ scale:'<path d="M12 4v16M5 8h14M5 8l-2 6h4l-2-6zM19 8l-2 6h4l-2-6zM8 20h8"/>',
+ bolt:'<path d="M13 3L5 13h6l-1 8 8-10h-6l1-8z"/>',
+ key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2.5 2.5"/>',
+ laptop:'<rect x="5" y="6" width="14" height="9" rx="2"/><path d="M3 18h18"/>',
+ wallet:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14.5h2"/>',
+ radar:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 12l6-6"/>',
+ ring:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/>',
+};
+const FILLED=new Set(['petal','spark','kebab','pause','play']);
+const ic=(n,s,c='#161616',sw=1.8)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" style="flex:none;display:block">`+(FILLED.has(n)?`<g fill="${c}">`:`<g fill="none" stroke="${c}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">`)+IC[n]+'</g></svg>';
+const spin=(s,c)=>`<svg class="spin" width="${s}" height="${s}" viewBox="0 0 24 24" style="flex:none;display:block"><circle cx="12" cy="12" r="8" fill="none" stroke="${c}" stroke-opacity=".25" stroke-width="2.4"/><path d="M12 4a8 8 0 018 8" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+
+// ---------------- markup ----------------
+const H=(s)=>{const d=document.createElement('div');d.innerHTML=s.trim();return d.firstElementChild;};
+const kit=document.getElementById('kit');
+const COLS=[300,285,262,290,290].map(w=>{const c=H(`<div class="col" style="width:${w}px"></div>`);kit.appendChild(c);return c;});
+const tile=(col,html,style='')=>{const t=H(`<div class="tile" style="${style}">${html}</div>`);COLS[col].appendChild(t);return t;};
+
+// 1 PROMPT
+tile(0,`
+<div style="padding:10px;display:flex;flex-direction:column;gap:8px">
+ <div class="row" style="gap:8px;padding:4px 4px 0">
+  <div class="ib" style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.8);box-shadow:inset 0 0 0 1px #EDEDED">${ic('sparkles',13)}</div>
+  <div style="font-size:13px;font-weight:600">Ask AI</div><div class="grow"></div>
+  <div class="stack sub" style="font-size:10.5px;justify-items:end"><span id="pS0">Reasoning on-chain</span><span id="pS1">Thinking<span id="pDots">...</span></span><span id="pS2" style="color:#2E9E5B">Answered in 1.2s</span></div>
+ </div>
+ <div class="in" style="padding:12px;display:flex;flex-direction:column;gap:18px">
+  <div style="min-height:36px;font-size:13px;font-weight:500;line-height:18px"><span id="pTxt"></span><span id="pCaret" style="display:inline-block;width:1.5px;height:15px;background:#161616;vertical-align:-2px;margin-left:1px"></span><span id="pPh" class="sub">Ask anything…</span></div>
+  <div class="row" style="gap:6px">
+   <div class="row" style="gap:4px;height:26px;padding:0 8px;border-radius:9px;background:rgba(255,255,255,.85);font-size:11px;font-weight:500">${ic('petal',9,'#4FC3F7')}Agent Pro${ic('chev',10,'#A3A3A3')}</div>
+   <div class="row" style="height:26px;padding:0 8px;border-radius:9px;background:rgba(255,255,255,.85);font-size:11px;font-weight:500">Base</div>
+   <div class="grow"></div>
+   <div id="pSend" class="ib" style="width:28px;height:28px;border-radius:10px;background:#242424">${ic('up',13,'#fff',2)}</div>
+  </div>
+ </div>
+ <div id="pReply" class="coll" style="margin-top:-8px"><div style="padding-top:8px"><div class="in" style="padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+  <div class="row" style="gap:8px"><div class="ib" style="width:22px;height:22px;border-radius:7px;background:#242424">${ic('petal',10,'#fff')}</div>
+   <div style="font-size:12px;font-weight:500">Aave on Base</div><div class="grow"></div>
+   <div style="font-size:12px;font-weight:600;color:#2E9E5B">6.82% APY</div></div>
+  <div class="row" style="gap:6px;padding-left:30px"><div class="sub" style="font-size:10.5px">≈ $341 / year · low risk</div><div class="grow"></div>
+   <div class="row" style="height:22px;padding:0 8px;border-radius:7px;background:#242424;color:#fff;font-size:10.5px;font-weight:500">Deposit</div></div>
+ </div></div></div>
+</div>`);
+
+// 2 SCHEDULED
+tile(0,`
+<div style="padding:10px;display:flex;flex-direction:column">
+ <div class="in" style="padding:14px 16px;display:flex;flex-direction:column;gap:3px">
+  <div style="font-size:18px;font-weight:600;letter-spacing:-.025em">Weekly DCA</div><div class="mid" style="font-size:12px">Thu, Jul 9 · 17:00</div></div>
+ <div class="row" style="height:44px;padding:0 8px;gap:8px">
+  <div class="ib" style="width:20px;height:20px;border-radius:6px;background:#242424">${ic('petal',10,'#fff')}</div>
+  <div class="mid" style="font-size:13px;font-weight:500">ETH → USDC</div><div class="grow"></div>
+  <div id="sPill" class="row" style="height:28px;padding:0 10px;border-radius:10px;font-size:12px;font-weight:500;gap:5px">
+   <div class="stack" style="width:12px;height:12px"><span id="sI0">${ic('petal',11,'#FFA63D')}</span><span id="sI1">${spin(12,'#161616')}</span><span id="sI2">${ic('check',12,'#2E9E5B',2.4)}</span></div>
+   <div class="stack"><span id="sT0" style="color:#F29A2E">Scheduled</span><span id="sT1">Executing</span><span id="sT2" style="color:#2E9E5B">Filled</span></div>
+  </div></div>
+ <div class="hr"></div>
+ <div class="row" style="height:44px;padding:0 8px;gap:8px">${ic('clock',16,'#9A9A9A')}<div class="mid" style="font-size:13px;font-weight:500">17:00</div><div class="grow"></div><div class="chip">Lowest gas window</div></div>
+ <div class="hr"></div>
+ <div class="row" style="height:44px;padding:0 8px;gap:8px">${ic('sparkles',16,'#9A9A9A')}<div class="mid" style="font-size:13px;font-weight:500">Planned by</div><div class="grow"></div><div class="chip">AI</div></div>
+ <div id="sFill" class="coll"><div style="padding:2px 0 8px"><div class="row" style="gap:10px;padding:10px 12px;border-radius:14px;background:rgba(233,247,238,.85)">
+  <div class="ib" style="width:24px;height:24px;border-radius:99px;background:#2E9E5B">${ic('check',12,'#fff',2.6)}</div>
+  <div style="display:flex;flex-direction:column;gap:1px"><div style="font-size:12px;font-weight:500">Bought 1,250 USDC @ $3,476</div><div class="sub" style="font-size:10.5px">Next run Thu, Jul 16 · gas $0.38</div></div>
+ </div></div></div>
+ <div style="height:12px"></div>
+ <div class="row" style="gap:6px"><div class="btn light" style="flex:1">Reschedule</div><div id="sEdit" class="btn dark" style="flex:1">Edit order</div></div>
+</div>`);
+
+// 3 SIGNER
+const step=(ind,body,last)=>`<div class="row" style="align-items:stretch;gap:10px"><div style="width:16px;display:flex;flex-direction:column;align-items:center;gap:4px">${ind}${last?'':'<div style="flex:1;border-left:1px dashed #CFCFCF"></div>'}</div><div style="flex:1;display:flex;flex-direction:column;gap:6px;padding-bottom:${last?0:10}px">${body}</div></div>`;
+const num=(n,id)=>`<div class="stack" style="width:16px;height:16px"><div id="${id}a" class="cb" style="background:rgba(255,255,255,.85);box-shadow:inset 0 0 0 1px #E5E5E5;font-size:9px;font-weight:500;color:#7E7E7E">${n}</div><div id="${id}b" class="cb" style="background:#242424">${ic('check',10,'#fff',2.6)}</div></div>`;
+const code=(s,id)=>`<div class="row" style="height:34px;padding:0 5px 0 12px;border-radius:11px;background:rgba(248,248,248,.62)"><div class="mono" style="font-size:10.5px">${s}</div><div class="grow"></div>
+ <div id="${id}" class="row" style="height:24px;padding:0 8px;border-radius:8px;background:rgba(255,255,255,.9);font-size:10px;font-weight:500"><div class="stack"><span id="${id}0">Copy</span><span id="${id}1" style="color:#2E9E5B;display:flex;gap:3px;align-items:center">${ic('check',10,'#2E9E5B',2.6)}Copied</span></div></div></div>`;
+tile(1,`
+<div style="padding:14px;display:flex;flex-direction:column;gap:12px">
+ <div class="row" style="gap:10px">
+  <div class="ib" style="width:34px;height:34px;border-radius:10px;background:#1E1E1E">${ic('key',17,'#FFC46B')}</div>
+  <div style="display:flex;flex-direction:column;gap:2px"><div class="row" style="gap:6px"><div style="font-size:14px;font-weight:600">Signer</div><div class="tag">${ic('laptop',10,'#A3A3A3')}Local</div></div><div class="sub" style="font-size:10.5px">keys never leave this device</div></div>
+ </div>
+ <div style="padding-left:9px">
+  ${step(`<div class="stack" style="width:16px;height:16px"><div id="g1a" style="display:flex;align-items:center;justify-content:center">${ic('refresh',14)}</div><div id="g1b" class="cb" style="background:#242424">${ic('check',10,'#fff',2.6)}</div></div>`,
+     `<div style="font-size:12px;font-weight:500">Install the local bridge</div>${code('npm i -g @agent/signer','gc1')}`)}
+  ${step(num(2,'g2'),`<div style="font-size:12px;font-weight:500">Start the server</div>${code('agent mcp start signer','gc2')}`)}
+  ${step(num(3,'g3'),`<div style="font-size:12px;font-weight:500">Grant scopes</div><div class="row" style="gap:4px">`+
+     ['balances:read','swap:quote','tx:sign'].map((s,i)=>`<div id="sc${i}" class="row mono" style="height:24px;padding:0 8px;border-radius:99px;font-size:9px">${s}</div>`).join('')+`</div>`,true)}
+ </div>
+ <div id="gOn" class="coll" style="margin-top:-12px"><div style="padding-top:12px"><div class="row" style="gap:8px;height:34px;padding:0 12px;border-radius:11px;background:rgba(233,247,238,.85)">
+  <div style="width:7px;height:7px;border-radius:9px;background:#2E9E5B;box-shadow:0 0 0 3px rgba(46,158,91,.18)"></div><div style="font-size:11.5px;font-weight:500">Signer online</div><div class="grow"></div><div class="mono sub" style="font-size:10px">0x7a…3F9c</div></div></div></div>
+</div>`);
+
+// 4 MENU
+const mrow=(i,icon,text,id)=>`<div class="row mrow" data-i="${i}" style="height:34px;padding:0 10px;gap:8px;position:relative">${icon}<div style="font-size:12.5px;font-weight:500" ${id?`id="${id}"`:''}>${text}</div></div>`;
+tile(1,`
+<div style="padding:10px;display:flex;flex-direction:column;gap:2px">
+ <div class="row" style="padding-bottom:6px;justify-content:space-between">
+  <div class="row" style="gap:5px;height:28px;padding:0 9px;border-radius:10px;background:rgba(248,248,248,.7);font-size:11px;font-weight:500">
+   <div class="stack"><span id="mI0">${ic('petal',10,'#4FC3F7')}</span><span id="mI1">${ic('petal',10,'#FFA63D')}</span></div>
+   <div class="stack"><span id="mC0">Last trade 2m ago</span><span id="mC1">Agent paused</span></div></div>
+  <div class="ib" style="width:28px;height:28px;border-radius:10px;background:rgba(238,238,238,.85)">${ic('kebab',12)}</div>
+ </div>
+ <div id="mHold" class="coll"><div style="padding-bottom:6px"><div class="row" style="gap:8px;height:32px;padding:0 10px;border-radius:10px;background:rgba(255,236,214,.8);font-size:11px;font-weight:500;color:#B86E14">${ic('clock',13,'#B86E14')}3 scheduled orders on hold</div></div></div>
+ <div id="mList" style="position:relative;display:flex;flex-direction:column">
+  <div id="mHi" style="position:absolute;left:0;right:0;top:0;height:34px;border-radius:11px;background:rgba(248,248,248,.85)"></div>
+  ${mrow(0,`<div class="stack" style="width:14px;height:14px"><span id="mP0">${ic('pause',14)}</span><span id="mP1">${ic('play',14)}</span></div>`,`<span class="stack"><span id="mT0">Pause agent</span><span id="mT1">Resume agent</span></span>`)}
+  ${mrow(1,ic('sparkles',14,'currentColor'),'View trades')}
+  ${mrow(2,ic('shield',14,'currentColor'),'Edit limits')}
+  <div style="padding:3px 0"><div class="hr"></div></div>
+  ${mrow(3,ic('unlink',14,'currentColor'),'Revoke access')}
+ </div>
+</div>`);
+
+// 5 SWAP
+const field=(lab,id,sym,col,sub)=>`<div class="in" style="padding:9px 12px;display:flex;flex-direction:column;gap:2px;border-radius:16px">
+ <div class="row sub" style="font-size:10.5px;justify-content:space-between"><span>${lab}</span><span id="${id}u">${sub}</span></div>
+ <div class="row" style="justify-content:space-between"><div id="${id}" style="font-size:21px;font-weight:600;letter-spacing:-.025em;font-variant-numeric:tabular-nums"></div>
+ <div class="row" style="gap:5px;padding:4px 6px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:11px;font-weight:500"><div style="width:16px;height:16px;border-radius:9px;background:${col}"></div>${sym}${ic('chev',10,'#A3A3A3')}</div></div></div>`;
+tile(2,`
+<div style="padding:10px;display:flex;flex-direction:column;gap:6px;position:relative">
+ ${field('You pay','wA','ETH','#8090FF','')}
+ <div id="wArr" class="ib" style="position:absolute;left:119px;top:69px;width:24px;height:24px;border-radius:12px;background:rgba(255,255,255,.9);box-shadow:inset 0 0 0 1px #EDEDED;z-index:2">${ic('down',11,'#161616',2.2)}</div>
+ ${field('You receive','wB','USDC','#4D97FF','Best route')}
+ <div id="wRoute" class="coll" style="margin-top:-6px"><div class="row" style="gap:6px;padding:12px 4px 2px;font-size:10.5px"><span class="sub">Route</span><span style="font-weight:500">Uniswap → Aerodrome</span><div class="grow"></div><span class="sub">${ic('bolt',9,'#A3A3A3')}</span><span class="sub">$0.42</span></div></div>
+ <div style="height:4px"></div>
+ <div id="wBtn" class="btn dark" style="width:100%">
+  <div class="stack"><span id="wB0">Review swap</span><span id="wB1" style="display:flex;gap:7px;align-items:center">${spin(14,'#fff')}Swapping</span><span id="wB2" style="display:flex;gap:6px;align-items:center">${ic('check',14,'#fff',2.4)}Swapped</span></div></div>
+</div>`);
+
+// 6 AGENTS
+const arow=(i,icon,a,b,det)=>`<div class="arow" style="border-radius:14px;padding:9px 12px;display:flex;gap:10px">
+ <div style="padding-top:1px">${ic(icon,15)}</div>
+ <div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font-size:13px;font-weight:500">${a}</div><div class="sub" style="font-size:11px">${b}</div>
+ <div class="coll adet"><div class="row" style="gap:6px;padding-top:7px">${det}</div></div></div></div>`;
+const pill=(s,c,bg)=>`<span class="row" style="height:20px;padding:0 7px;border-radius:7px;background:${bg};color:${c};font-size:10.5px;font-weight:500;gap:4px">${s}</span>`;
+const live=`<span style="width:6px;height:6px;border-radius:6px;background:#2E9E5B"></span>`;
+tile(2,`
+<div style="padding:8px;display:flex;flex-direction:column;gap:2px">
+ ${arow(0,'chart','Yield Agent','Idle funds, always earning.',pill(live+'Running','#2E9E5B','rgba(233,247,238,.9)')+pill('6.82% APY','#161616','rgba(255,255,255,.85)'))}
+ ${arow(1,'scale','Auto-Rebalance','Targets held without thinking.',pill(live+'Running','#2E9E5B','rgba(233,247,238,.9)')+pill('60 / 40 ETH·USDC','#161616','rgba(255,255,255,.85)'))}
+ ${arow(2,'bolt','Gas Optimizer','Sends when fees are lowest.',pill(live+'Running','#2E9E5B','rgba(233,247,238,.9)')+pill('Saved $42.80','#161616','rgba(255,255,255,.85)'))}
+ <div style="height:8px"></div>
+ <div style="border-top:1px dashed rgba(0,0,0,.1)"></div>
+ <div class="row" style="gap:10px;padding:10px 10px 6px">
+  <div class="ib" style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.85);box-shadow:inset 0 0 0 1px #EDEDED">${ic('sparkles',13)}</div>
+  <div class="stack" style="font-size:12px;font-weight:500"><span id="aF0">Agent trades on 6 new chains</span><span id="aF1">Gas saved this week: $42.80</span></div>
+ </div>
+</div>`);
+
+// 7 WALLETS
+tile(3,`
+<div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+ <div class="row" style="gap:10px"><div class="ib" style="width:36px;height:36px;border-radius:11px">${ic('wallet',18)}</div>
+  <div style="display:flex;flex-direction:column;gap:1px"><div style="font-size:15px;font-weight:600;letter-spacing:-.02em">Wallets</div><div class="sub" style="font-size:11px">Where your agents sign from</div></div></div>
+ <div style="font-size:11px;font-weight:500;color:#B5B5B5;margin-top:-2px">Connect</div>
+ <div class="in" style="padding:12px"><div class="row" style="gap:10px">
+  <div class="ib" style="width:32px;height:32px;border-radius:10px;background:#242424"><svg width="17" height="17.85" viewBox="0 0 20 21" fill="none" style="display:block;flex:none"><path d="M10.2061 12.4365C11.2554 12.4365 12.1064 14.2926 12.1064 16.582C12.1063 18.8713 11.2553 20.7266 10.2061 20.7266C9.15691 20.7263 8.30674 18.8711 8.30664 16.582C8.30664 14.2928 9.15685 12.4368 10.2061 12.4365ZM4.96484 13.8857C6.53182 12.1775 8.20805 11.1655 8.70898 11.625C9.20986 12.0846 8.34531 13.8415 6.77832 15.5498C5.21135 17.258 3.53518 18.2709 3.03418 17.8115C2.53322 17.352 3.39781 15.5941 4.96484 13.8857ZM11.7178 11.5742C12.2669 10.5244 14.3775 10.5446 16.4316 11.6191C18.4854 12.6935 19.7057 14.415 19.1572 15.4648C18.6081 16.5146 16.4974 16.4952 14.4434 15.4209C12.3894 14.3465 11.169 12.6241 11.7178 11.5742ZM4.05078 9.89746C6.35352 9.63512 8.27502 9.89859 8.34277 10.4863C8.40977 11.0743 6.59626 11.7639 4.29297 12.0264C1.99024 12.2887 0.0687191 12.0252 0.000976562 11.4375C-0.0660192 10.8495 1.74749 10.1599 4.05078 9.89746ZM12.8428 4.55762C14.6259 3.07622 16.9077 2.88131 17.9385 4.12207C18.9692 5.36282 18.3591 7.56942 16.5762 9.05078C14.7931 10.5322 12.5123 10.7271 11.4814 9.48633C10.4507 8.24561 11.0598 6.039 12.8428 4.55762ZM1.11133 5.68457C1.33545 5.24574 3.19037 5.74446 5.25488 6.79883C7.31941 7.85321 8.81103 9.06409 8.58691 9.50293C8.36178 9.94099 6.5072 9.44173 4.44336 8.3877C2.37898 7.33337 0.88739 6.12346 1.11133 5.68457ZM5.11621 1.40332C5.48011 1.19834 6.69724 2.66965 7.83496 4.68945C8.97263 6.70919 9.60022 8.5128 9.23633 8.71777C8.87227 8.9223 7.65512 7.45105 6.51758 5.43164C5.38 3.41209 4.7526 1.60868 5.11621 1.40332ZM10.2031 0C10.5379 0 10.8096 1.88005 10.8096 4.19824C10.8095 6.51625 10.5379 8.39551 10.2031 8.39551C9.86839 8.39492 9.59671 6.51588 9.59668 4.19824C9.59668 1.88041 9.86837 0.000588904 10.2031 0Z" fill="white"/></svg></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><div class="row" style="gap:6px"><div style="font-size:13px;font-weight:600">Halo</div><div class="tag">Hardware</div></div><div class="sub" style="font-size:10.5px;white-space:nowrap">Signs on your device.</div></div>
+  <div class="grow"></div>
+  <div id="hBtn" class="row" style="height:28px;padding:0 12px;border-radius:10px;font-size:11px;font-weight:500;justify-content:center">
+   <div class="stack"><span id="hB0">Connect</span><span id="hB1" style="display:flex;align-items:center">${spin(13,'#fff')}</span><span id="hB2" style="display:flex;gap:5px;align-items:center;color:#161616">${live}Paired</span></div></div>
+ </div></div>
+ <div class="in" style="padding:12px;display:flex;flex-direction:column;gap:12px">
+  <div class="row" style="gap:10px">
+   <div class="ib" style="width:32px;height:32px;border-radius:10px;background:#242424"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" style="display:block;flex:none"><path d="M9.3689 14.1514C9.75611 14.2653 10.1655 14.3281 10.5896 14.3281C10.5974 14.3281 10.6052 14.3272 10.613 14.3271V19.9697H9.3689V14.1514ZM14.3201 19.001L13.1658 19.4668L11.0769 14.2998C11.5031 14.2519 11.9103 14.1422 12.2898 13.9795L14.3201 19.001ZM7.82886 13.3301C8.15023 13.5976 8.51086 13.8194 8.90112 13.9854L6.52124 19.373L5.38257 18.8701L7.82886 13.3301ZM17.489 16.6074L16.6091 17.4873L12.8259 13.7041C13.1849 13.4863 13.5093 13.2177 13.7898 12.9082L17.489 16.6074ZM6.87671 12.2158C7.09197 12.5774 7.35892 12.9042 7.66675 13.1875L3.3689 17.4863L2.48804 16.6064L6.87671 12.2158ZM19.3689 13.4746L18.866 14.6133L14.1082 12.5107C14.3483 12.1735 14.5415 11.8009 14.6775 11.4014L19.3689 13.4746ZM6.34155 10.7852C6.41729 11.2029 6.55335 11.5992 6.73999 11.9658L0.970459 14.2988L0.504639 13.1455L6.34155 10.7852ZM19.9744 9.36426V10.6084H14.866C14.8931 10.4127 14.908 10.2129 14.908 10.0098C14.908 9.7904 14.8917 9.57483 14.8601 9.36426H19.9744ZM6.31909 9.36426C6.28752 9.57484 6.27125 9.79039 6.27124 10.0098C6.27124 10.2129 6.2861 10.4127 6.31323 10.6084H0.00463867V9.36426H6.31909ZM6.80737 7.92383C6.6081 8.28436 6.45967 8.67662 6.36987 9.09082L0.600342 6.54199L1.10327 5.40332L6.80737 7.92383ZM19.4851 6.81543L14.7175 8.74219C14.5936 8.33801 14.4122 7.95931 14.1824 7.61523L19.0183 5.66113L19.4851 6.81543ZM7.69116 6.80859C7.38136 7.08925 7.11223 7.41411 6.89429 7.77344L2.48804 3.36719L3.3689 2.48633L7.69116 6.80859ZM17.489 3.36621L13.7673 7.08691C13.4841 6.77911 13.1572 6.51213 12.7957 6.29688L16.6091 2.48535L17.489 3.36621ZM9.05444 5.97266C8.65782 6.12355 8.28947 6.33144 7.95874 6.58594L5.68237 0.953125L6.83667 0.486328L9.05444 5.97266ZM14.5925 1.10742L12.3914 6.08496C12.0159 5.91229 11.6115 5.79215 11.1873 5.7334L13.4539 0.604492L14.5925 1.10742ZM10.613 5.69141C10.6052 5.69136 10.5974 5.69141 10.5896 5.69141C10.1656 5.69141 9.75601 5.75331 9.3689 5.86719V0H10.613V5.69141Z" fill="white"/><mask id="orbitMask" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20"><path d="M10.6084 7.0332L13.4492 0.604492L14.5879 1.10742L11.9004 7.1875L16.6035 2.48535L17.4834 3.36621L12.5938 8.25488L19.0107 5.66113L19.4775 6.81543L13.1719 9.36426H19.9688V10.6084H12.877L19.3633 13.4746L18.8604 14.6133L12.8193 11.9434L17.4834 16.6074L16.6035 17.4873L11.7334 12.6172L14.3145 19.001L13.1602 19.4668L10.6084 13.1533V19.9697H9.36328V12.9307L6.5166 19.373L5.37793 18.8701L8.06836 12.7803L3.36328 17.4863L2.48242 16.6064L7.38574 11.7021L0.962891 14.2988L0.49707 13.1455L6.77344 10.6084H0V9.36426H6.98145L0.594727 6.54199L1.09766 5.40332L7.22656 8.11133L2.48242 3.36719L3.36328 2.48633L8.28613 7.40918L5.67676 0.953125L6.83008 0.486328L9.36328 6.75195V0H10.6084V7.0332Z" fill="white"/></mask><g mask="url(#orbitMask)"><path d="M12.1824 4.09473C15.4496 4.09473 18.0984 6.74347 18.0984 10.0107C18.0984 13.278 15.4496 15.9268 12.1824 15.9268C9.01731 15.9267 6.43276 13.4411 6.27417 10.3154L6.27222 10.2324C6.38779 12.5142 8.27425 14.3291 10.5847 14.3291C12.9696 14.3291 14.9029 12.3955 14.9031 10.0107C14.9031 7.62577 12.9697 5.69238 10.5847 5.69238C8.19978 5.69242 6.26636 7.6258 6.26636 10.0107C6.26636 6.74348 8.91511 4.09474 12.1824 4.09473Z" fill="black" fill-opacity="0.5"/></g></svg></div>
+   <div style="display:flex;flex-direction:column;gap:2px"><div class="row" style="gap:6px"><div style="font-size:13px;font-weight:600">Orbit</div><div class="tag">Hot</div></div><div class="sub" style="font-size:10.5px">Trades for your agents.</div></div>
+   <div class="grow"></div>
+   <div class="row" style="gap:4px;height:24px;padding:0 7px;border-radius:9px;background:rgba(255,255,255,.9);font-size:10px;font-weight:500">${ic('spark',8,'#4FC3F7')}<span class="stack"><span id="oT0">2m ago</span><span id="oT1">just now</span></span></div>
+  </div>
+  <div style="padding-left:8px">
+   ${step(`<div class="cb" style="background:#242424">${ic('check',10,'#fff',2.6)}</div>`,
+     `<div class="row" style="gap:6px"><div style="font-size:12px;font-weight:500">Grant access</div><div id="wGr" class="row" style="gap:3px;font-size:10.5px;font-weight:500;color:#2E9E5B">${ic('check',10,'#2E9E5B',2.6)}2 granted</div></div>
+      <div id="wSub" class="coll" style="margin-top:-6px"><div style="display:flex;flex-direction:column;gap:8px;padding:8px 0 2px">
+       ${[['Read balances','Agents see the tokens you hold.'],['Propose swaps','You approve every trade.']].map((a,i)=>`<div class="row" style="gap:8px;align-items:flex-start"><div class="stack" style="width:16px;height:16px"><div class="cb" style="background:#fff;box-shadow:inset 0 0 0 1px #E5E5E5"></div><div id="wc${i}" class="cb" style="background:#242424">${ic('check',10,'#fff',2.6)}</div></div><div style="display:flex;flex-direction:column;gap:1px"><div style="font-size:11.5px;font-weight:500">${a[0]}</div><div class="sub" style="font-size:10.5px">${a[1]}</div></div></div>`).join('')}
+       <div class="row"><div id="wAllow" class="row dark" style="height:28px;padding:0 12px;border-radius:10px;font-size:11px;font-weight:500"><div class="stack"><span id="wA0">Allow access</span><span id="wA1" style="display:flex;justify-content:center">${spin(13,'#fff')}</span></div></div></div>
+      </div></div>`)}
+   ${step(num(2,'w2'),`<div style="display:flex;flex-direction:column;gap:1px"><div style="font-size:12px;font-weight:500">Set spend limits</div><div class="sub" style="font-size:10.5px">Daily caps per agent and chain.</div></div>
+      <div id="wLim" class="coll" style="margin-top:-6px"><div style="padding:10px 0 2px;display:flex;flex-direction:column;gap:7px">
+       <div class="row" style="justify-content:space-between;font-size:11px"><span class="mid" style="font-weight:500">Daily cap</span><span id="wCap" style="font-weight:600;font-variant-numeric:tabular-nums">$500</span></div>
+       <div style="position:relative;height:16px"><div style="position:absolute;left:0;right:0;top:6px;height:4px;border-radius:2px;background:rgba(0,0,0,.08)"></div>
+        <div id="wFill" style="position:absolute;left:0;top:6px;height:4px;border-radius:2px;background:#242424"></div>
+        <div id="wKnob" style="position:absolute;top:0;width:16px;height:16px;border-radius:9px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)"></div></div>
+      </div></div>`,true)}
+  </div>
+ </div>
+</div>`,'border-radius:26px');
+
+// 8 APPROVE
+tile(3,`
+<div style="padding:12px;display:flex;flex-direction:column">
+ <div id="xReq" class="coll"><div style="padding:2px 4px 12px;display:flex;flex-direction:column;gap:2px"><div style="font-size:12.5px;font-weight:500">Agent wants to swap 1.50 ETH</div><div class="sub" style="font-size:10.5px">Gas ≈ $0.42 · Base</div></div></div>
+ <div class="row" style="justify-content:center">
+  <div id="xRej" class="btn light" style="flex:1 1 0;min-width:0">Reject</div>
+  <div id="xGap" style="width:6px;flex:none"></div>
+  <div id="xApp" class="btn" style="flex:1 1 0;min-width:0"><div class="stack" style="justify-items:center"><span id="xA0">Approve</span><span id="xA1">${spin(14,'#fff')}</span><span id="xA2">${ic('check',16,'#fff',2.6)}</span></div></div>
+ </div>
+</div>`);
+
+// 9 CONTROLS
+const ctr=H(`<div class="row" style="gap:9px;height:58px"></div>`); COLS[4].appendChild(ctr);
+ctr.appendChild(H(`<div id="cHide" class="tile ib" style="width:58px;height:58px;border-radius:20px"><div class="stack"><span id="cH0">${ic('eyeOff',19)}</span><span id="cH1">${ic('eyeOff',19,'#fff')}</span></div></div>`));
+ctr.appendChild(H(`<div class="tile" style="width:108px;height:58px;border-radius:20px;padding:4px;display:flex">
+ <div id="cPill" style="position:absolute;top:4px;left:4px;width:50px;height:50px;border-radius:16px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)"></div>
+ <div class="ib" style="flex:1;position:relative" id="cSun">${ic('sun',18)}</div><div class="ib" style="flex:1;position:relative" id="cMoon">${ic('moon',17)}</div></div>`));
+ctr.appendChild(H(`<div class="tile" style="width:108px;height:58px;border-radius:20px;background:rgba(255,255,255,.6)"><img src="assets/img/network.png" alt="sz.eth" style="width:100%;height:100%;display:block"></div>`));
+// 10 PHOTO
+tile(4,`<div id="phBox" style="height:300px;position:relative"><video id="ph" autoplay muted loop playsinline preload="auto" poster="assets/img/flower-poster.jpg" aria-hidden="true" style="display:block;position:absolute;left:-1%;top:-1%;width:102%;height:102%;object-fit:cover;transform-origin:50% 50%"><source src="assets/video/flower.webm" type="video/webm"><source src="assets/video/flower.mp4" type="video/mp4"></video><svg id="logo" viewBox="0 0 116 114" style="position:absolute;left:50%;top:50%;width:49.3px;height:48.45px;margin:-24.2px 0 0 -24.65px;overflow:visible;filter:drop-shadow(0 2px 10px rgba(30,60,110,.22))"><path class="lp" d="M8.36914 41.1748C33.9174 41.4986 54.5289 62.3105 54.5293 87.9355L54.5254 88.54C54.4061 97.9554 51.5014 106.698 46.6016 113.988C41.3513 112.98 36.3554 111.258 31.7178 108.927C36.6341 103.321 39.6161 95.9772 39.6162 87.9355C39.6158 70.345 25.3552 56.0842 7.76465 56.084C5.08623 56.084 2.48542 56.4164 0 57.0391C0.0432889 51.6487 0.827405 46.4351 2.25684 41.4951C4.06341 41.2831 5.90113 41.1709 7.76465 41.1709L8.36914 41.1748Z" fill="white"/><path class="lp" d="M107.863 41.1748C109.517 41.1958 111.149 41.3039 112.757 41.4922C114.187 46.4325 114.971 51.6463 115.015 57.0371C112.532 56.4158 109.934 56.084 107.259 56.084C89.6684 56.0844 75.4077 70.3452 75.4072 87.9355C75.4073 95.9756 78.388 103.319 83.3027 108.924C78.6651 111.255 73.6693 112.978 68.4189 113.986C63.5201 106.697 60.6174 97.9542 60.498 88.54L60.4941 87.9355C60.4946 62.1089 81.4322 41.1713 107.259 41.1709L107.863 41.1748Z" fill="white"/><path class="lp" d="M7.76074 71.79C16.6771 71.7901 23.9059 79.0183 23.9062 87.9346C23.9062 92.6691 21.8678 96.9275 18.6211 99.8809C10.7942 92.6937 4.96448 83.3665 2.05957 72.8262C3.83234 72.1568 5.75371 71.7901 7.76074 71.79Z" fill="white"/><path class="lp" d="M107.256 71.79C109.262 71.7901 111.183 72.1572 112.955 72.8262C110.05 83.3662 104.221 92.6928 96.3945 99.8799C93.1484 96.9266 91.1104 92.6686 91.1104 87.9346C91.1107 79.0184 98.3397 71.7903 107.256 71.79Z" fill="white"/><path class="lp" d="M26.5742 9.01953C29.9859 22.936 42.5406 33.2617 57.5088 33.2617C72.4763 33.2614 85.0302 22.9362 88.4424 9.02051C92.9871 11.9259 97.0957 15.453 100.649 19.4814C93.581 36.3349 76.9289 48.1745 57.5088 48.1748L56.9043 48.1709C37.7423 47.9282 21.3605 36.1593 14.3662 19.4795C17.92 15.4512 22.0294 11.9248 26.5742 9.01953Z" fill="white"/><path class="lp" d="M57.5078 0C63.1029 3.27441e-06 68.511 0.799942 73.625 2.29004C73.168 10.7974 66.1262 17.5555 57.5049 17.5557C48.8842 17.5555 41.8416 10.7985 41.3838 2.29199C46.4998 0.800625 51.9103 0 57.5078 0Z" fill="white"/></svg></div>`);
+// 11 BALANCE
+tile(4,`
+<div style="padding:16px;display:flex;flex-direction:column;gap:2px">
+ <div class="row" style="justify-content:space-between"><span class="sub" style="font-size:11px;font-weight:500">Agent balance</span>
+  <span class="row" style="gap:3px;height:20px;padding:0 7px;border-radius:99px;background:rgba(233,247,238,.9);color:#2E9E5B;font-size:10px;font-weight:500">${ic('up',9,'#2E9E5B',2.4)}<span id="bWk" style="font-variant-numeric:tabular-nums"></span>&nbsp;this week</span></div>
+ <div class="stack"><div id="bAmt" style="font-size:26px;font-weight:600;letter-spacing:-.025em;font-variant-numeric:tabular-nums"></div><div id="bHid" style="font-size:26px;font-weight:600;letter-spacing:.06em">$••••••</div></div>
+ <div id="bNew" class="coll"><div class="row" style="gap:6px;padding-top:8px;font-size:10.5px"><span class="row" style="gap:4px;height:20px;padding:0 7px;border-radius:7px;background:rgba(255,255,255,.85);font-weight:500">${ic('chart',10)}Yield Agent</span><span class="sub">deposited</span><span style="font-weight:600;color:#2E9E5B" id="bInc">+$184.10</span></div></div>
+</div>`);
+
+// ---------------- animation helpers ----------------
+const $=id=>document.getElementById(id);
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,p)=>a+(b-a)*p;
+const eIO=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eOut=p=>1-Math.pow(1-p,3);
+const eBack=p=>{const c=1.6,c3=c+1;return 1+c3*Math.pow(p-1,3)+c*Math.pow(p-1,2);};
+const R=(x,a,d=.35,e=eIO)=>e(clamp((x-a)/d));
+const W=(x,a,b,d=.3)=>R(x,a,d)*(1-R(x,b,d));                     // window on [a,b]
+const LT=(t,off,P=8)=>(((t+off)%P)+P)%P;
+const bump=(x,a,d=.26)=>{const p=clamp((x-a)/d);return Math.sin(Math.PI*p);};
+const fmt=(v,d=2)=>v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const mixC=(a,b,p)=>{const A=a.match(/\w\w/g).map(h=>parseInt(h,16)),B=b.match(/\w\w/g).map(h=>parseInt(h,16));return `rgb(${A.map((v,i)=>Math.round(lerp(v,B[i],p))).join(',')})`;};
+// show one of several stacked states: weights array (sum ~1)
+function states(prefix,ws,dy=5){ws.forEach((w,i)=>{const e=$(prefix+i);if(!e)return;e.style.opacity=clamp(w*2-1);e.style.transform=`translateY(${(1-w)*dy*(i%2?1:-1)}px) scale(${.92+.08*w})`;});}
+// collapsible: measured once
+const NAT={};
+function coll(id,p){const e=$(id); if(!(id in NAT)){e.style.height='auto';NAT[id]=e.scrollHeight;} e.style.height=(NAT[id]*p)+'px'; e.style.opacity=clamp(p*1.4-.2);}
+function collEl(e,key,p){if(!(key in NAT)){e.style.height='auto';NAT[key]=e.scrollHeight;} e.style.height=(NAT[key]*p)+'px'; e.style.opacity=clamp(p*1.4-.2);}
+const press=(id,x,a)=>{$(id).style.transform=`scale(${1-.07*bump(x,a)})`;};
+// three-state helper from switch times: s1 at a (0->1), s2 at b (1->2), back to 0 at c
+function tri(x,a,b,c,d=.25){const p1=R(x,a,d),p2=R(x,b,d),p0=R(x,c,d);const w2=p2*(1-p0),w1=p1*(1-p2)*(1-p0);return [1-w1-w2,w1,w2];}
+
+const FULL="Move my idle USDC into the best yield on Base";
+window.render=function(t){
+ // spinners
+ document.querySelectorAll('.spin').forEach(s=>s.style.transform=`rotate(${t*400}deg)`);
+
+ // 1 PROMPT  (P=8, off 0)
+ { const x=LT(t,0);
+   const typed=x<2.3?Math.floor(clamp((x-.35)/1.8)*FULL.length):(x<6.7?FULL.length:Math.floor((1-clamp((x-6.8)/.6))*FULL.length));
+   $('pTxt').textContent=FULL.slice(0,typed); $('pPh').style.display=typed?'none':'inline';
+   const typing=(x>.35&&x<2.2)||(x>6.8&&x<7.4); $('pCaret').style.opacity=(typing||Math.floor(x*2.2)%2===0)&&!(x>2.5&&x<6.7)?1:0;
+   press('pSend',x,2.45);
+   states('pS',tri(x,2.5,3.2,6.7)); $('pDots').textContent='.'.repeat(1+Math.floor(x*6)%3);
+   coll('pReply',R(x,3.15,.5)*(1-R(x,6.5,.45)));
+ }
+ // 2 SCHEDULED (off 1.4)
+ { const x=LT(t,5.5);
+   const w=tri(x,1.0,2.4,6.5); states('sI',w,3); states('sT',w,4);
+   const bg=[['FDEBE8',w[0]],['ECECEC',w[1]],['E3F4E9',w[2]]];
+   const c=bg.reduce((acc,[h,k])=>acc.map((v,i)=>v+parseInt(h.substr(i*2,2),16)*k),[0,0,0]);
+   $('sPill').style.background=`rgba(${c.map(Math.round).join(',')},.92)`;
+   coll('sFill',R(x,2.5,.5)*(1-R(x,6.2,.45)));
+   press('sEdit',x,7.2);
+ }
+ // 3 SIGNER (off 2.5)
+ { const x=LT(t,6.0);
+   const r=x<7.2?1:0;
+   $('g1a').style.transform=`rotate(${clamp(x/1.3)*540}deg)`;
+   const s1=R(x,1.3,.25)*(1-R(x,7.2,.3)); $('g1a').style.opacity=1-s1; $('g1b').style.opacity=s1; $('g1b').style.transform=`scale(${lerp(.6,1,s1)})`;
+   press('gc2',x,1.7); states('gc2',(()=>{const k=W(x,1.75,3.2,.2);return[1-k,k];})(),4);
+   const s2=R(x,2.6,.25)*(1-R(x,7.2,.3)); $('g2a').style.opacity=1-s2; $('g2b').style.opacity=s2; $('g2b').style.transform=`scale(${lerp(.6,1,s2)})`;
+   for(let i=0;i<3;i++){const k=R(x,3.1+i*.4,.25)*(1-R(x,7.2,.3)); const e=$('sc'+i);
+     e.style.background=mixC('FFFFFF','242424',k); e.style.color=mixC('161616','FFFFFF',k); e.style.boxShadow=`inset 0 0 0 1px rgba(0,0,0,${.07*(1-k)})`; e.style.transform=`scale(${1-.08*bump(x,3.1+i*.4,.25)})`;}
+   const s3=R(x,4.3,.25)*(1-R(x,7.2,.3)); $('g3a').style.opacity=1-s3; $('g3b').style.opacity=s3; $('g3b').style.transform=`scale(${lerp(.6,1,s3)})`;
+   coll('gOn',R(x,4.5,.5)*(1-R(x,6.9,.45)));
+   states('gc1',[1,0]);
+ }
+ // 4 MENU (off 3.7)
+ { const x=LT(t,2.3);
+   let pos=0; pos=lerp(pos,1,R(x,1.0,.35)); pos=lerp(pos,2,R(x,2.2,.35)); pos=lerp(pos,0,R(x,3.4,.45));
+   const rowsY=[0,34,68,109]; const y=pos<=1?lerp(rowsY[0],rowsY[1],pos):lerp(rowsY[1],rowsY[2],pos-1);
+   $('mHi').style.transform=`translateY(${y}px) scale(${1-.03*bump(x,4.4)})`;
+   document.querySelectorAll('.mrow').forEach(r=>{const i=+r.dataset.i;const k=clamp(1-Math.abs(pos-i));r.style.color=mixC('7E7E7E','161616',k);});
+   const pz=R(x,4.5,.3)*(1-R(x,7.4,.3)); states('mP',[1-pz,pz],3); states('mT',[1-pz,pz],4); states('mC',[1-pz,pz],4); states('mI',[1-pz,pz],0);
+   coll('mHold',R(x,4.6,.45)*(1-R(x,7.2,.45)));
+ }
+ // 5 SWAP (off 0.6)
+ { const x=LT(t,7.4);
+   const k=R(x,.3,.9,eOut)*(1-R(x,6.4,.9,eOut)); const eth=lerp(1.5,2.4,k);
+   $('wA').textContent=fmt(eth); $('wAu').textContent='$'+fmt(eth*3476.2); $('wB').textContent=fmt(eth*3473.2,1);
+   coll('wRoute',R(x,1.3,.45)*(1-R(x,6.0,.45)));
+   $('wArr').style.transform=`rotate(${180*R(x,2.25,.45,eBack)+180*R(x,6.3,.45,eBack)}deg)`;
+   $('wArr').style.top=(10+$('wA').closest('.in').offsetHeight+3-12)+'px';
+   press('wBtn',x,2.2); states('wB',tri(x,2.3,3.7,6.2),5);
+   $('wBtn').style.background=mixC('242424','2E9E5B',W(x,3.7,6.2,.3));
+ }
+ // 6 AGENTS (off 4.5)
+ { const x=LT(t,3.5);
+   let pos=0; pos=lerp(pos,1,R(x,2.4,.5)); pos=lerp(pos,2,R(x,5.0,.5)); pos=lerp(pos,0,R(x,7.4,.5));
+   // wrap: from 2 back to 0 should travel; fine
+   document.querySelectorAll('.arow').forEach((r,i)=>{const kk=clamp(1-Math.abs(pos-i)); r.style.background=`rgba(248,248,248,${.85*kk})`; collEl(r.querySelector('.adet'),'ad'+i,eIO(kk));});
+   const f=W(x,5.3,7.2,.3); states('aF',[1-f,f],5);
+ }
+ // 7 WALLETS (off 0)
+ { const x=LT(t,0.8);
+   const c0=R(x,.8,.2)*(1-R(x,7.0,.2)), c1=R(x,1.3,.2)*(1-R(x,7.0,.2));
+   [$('wc0'),$('wc1')].forEach((e,i)=>{const k=i?c1:c0;e.style.opacity=k;e.style.transform=`scale(${lerp(.5,1,eBack(k))})`;});
+   press('wAllow',x,1.9); const sp=W(x,2.0,2.8,.15); states('wA',[1-sp,sp],0);
+   const done=R(x,2.8,.3)*(1-R(x,7.0,.3));
+   coll('wSub',1-R(x,3.0,.5)*(1-R(x,6.9,.5)));
+   $('wGr').style.opacity=done; $('wGr').style.transform=`translateX(${(1-done)*-6}px)`;
+   const act=R(x,3.4,.3)*(1-R(x,7.0,.3)); $('w2a').style.opacity=1-act; $('w2b').style.opacity=act; $('w2b').innerHTML='<span style="font-size:9px;font-weight:500;color:#fff">2</span>';
+   coll('wLim',R(x,3.5,.45)*(1-R(x,6.7,.45)));
+   const cap=R(x,4.0,1.0,eIO)*(1-R(x,6.6,.4)); $('wCap').textContent='$'+fmt(Math.round(lerp(500,1200,cap)/10)*10,0);
+   const wTrack=NAT.__trk||($('wFill').parentElement.offsetWidth||200); NAT.__trk=wTrack; const px=lerp(.28,.7,cap)*(wTrack-16);
+   $('wFill').style.width=(px+8)+'px'; $('wKnob').style.left=px+'px';
+   press('hBtn',x,5.0); const hb=tri(x,5.1,5.6,7.2,.2); states('hB',hb,4);
+   $('hBtn').style.background=mixC('242424','FFFFFF',clamp(hb[2]+hb[1]*0))+''; $('hBtn').style.color='#fff';
+   if(hb[2]>0.5){$('hBtn').style.boxShadow='inset 0 0 0 1px #E8E8E8';}else{$('hBtn').style.boxShadow='none';}
+   const oj=W(x,2.8,6.8,.25); states('oT',[1-oj,oj],4);
+ }
+ // 8 APPROVE (off 5.5)
+ { const x=LT(t,2.5);
+   coll('xReq',R(x,.3,.45)*(1-R(x,6.2,.45)));
+   press('xApp',x,1.5); const st=tri(x,1.6,2.4,6.35,.2); states('xA',st,4);
+   const m=R(x,2.4,.55,eIO)*(1-R(x,5.9,.5));
+   $('xRej').style.flex=`${1-m} 1 0`; $('xRej').style.opacity=1-m; $('xRej').style.padding='0';
+   $('xGap').style.width=(6*(1-m))+'px';
+   const full=$('xApp').parentElement.offsetWidth;
+   $('xApp').style.flex=m>0?`0 0 ${lerp((full-6)/2,36,m)}px`:'1 1 0';
+   $('xApp').style.borderRadius=lerp(13,18,m)+'px';
+   $('xApp').style.background=mixC('242424','2E9E5B',m); $('xApp').style.color='#fff';
+   $('xApp').style.transform+=` scale(${1+.08*bump(x,2.7,.35)})`;
+ }
+ // 9 CONTROLS
+ { const x=LT(t,7.0); const h=W(x,1.0,3.6,.3); $('cHide').style.background=`rgba(${Math.round(lerp(255,36,h))},${Math.round(lerp(255,36,h))},${Math.round(lerp(255,36,h))},${lerp(1,1,h)})`;
+   states('cH',[1-h,h],0); $('cHide').style.transform=`scale(${1-.07*bump(x,1.0)-.07*bump(x,3.6)})`;
+   const hidG=h; $('bAmt').style.opacity=1-hidG; $('bHid').style.opacity=hidG; $('bAmt').style.filter=`blur(${hidG*4}px)`;
+   const y=LT(t,4.0); const m=R(y,1.0,.45,eBack)*(1-R(y,5.0,.45,eBack)); $('cPill').style.transform=`translateX(${m*50}px)`;
+ }
+ // 10 PHOTO
+ { const x=LT(t,1.5); let h=300; h=lerp(h,222,R(x,1.0,.7,eIO)); h=lerp(h,344,R(x,3.3,.8,eIO)); h=lerp(h,300,R(x,6.2,.7,eIO)); $('phBox').style.height=h+'px'; }
+ $('ph').style.transform=`scale(${1.04+.02*Math.sin(t/16*2*Math.PI)})`;
+ { const x=LT(t,1.5); const C=[58,57];
+   if(!window._lc){window._lc=[...document.querySelectorAll('.lp')].map(e=>{const b=e.getBBox();return[b.x+b.width/2,b.y+b.height/2];});}
+   const order=[5,4,2,3,0,1];
+   document.querySelectorAll('.lp').forEach((e,i)=>{
+     const st=order.indexOf(i)*.06; let k=0;
+     for(const a of [1.0,3.3,6.2]){ k+=R(x,a,.35,eIO)*(1-R(x,a+.35+st,.75,eBack)); }
+     const [px,py]=window._lc[i]; const dx=(C[0]-px)*.32*k, dy=(C[1]-py)*.32*k, sc=1-.22*k;
+     e.setAttribute('transform',`translate(${dx} ${dy}) translate(${px} ${py}) scale(${sc}) translate(${-px} ${-py})`);
+   });
+   const br=1+.025*Math.sin(t*2*Math.PI/4); const spin=720*R(t,3.0,1.35,eBack)-720*R(t,8.55,1.35,eBack)+720*R(t,13.9,1.35,eBack); $('logo').style.transform=`rotate(${spin}deg) scale(${br})`;
+ }
+ // 11 BALANCE (P16)
+ { const x=LT(t,0,16); const inc=184.10; const k1=R(x,4.4,1.2,eOut), k2=R(x,12.4,1.2,eOut), back=0;
+   const v=12480.22+inc*(k1+k2); $('bAmt').textContent='$'+fmt(v); $('bWk').textContent='$'+fmt(inc*(1+k1+k2));
+   coll('bNew',W(x,4.2,6.8,.4)+W(x,12.2,14.8,.4));
+ }
+ // keep the whole kit centred on the frame's horizontal midline
+ const k=document.getElementById('kit'); k.style.top=(540-k.offsetHeight*1.1776/2)+'px';
+};
+// ---------------- live loop ----------------
+const stage=document.getElementById('stage');
+function fit(){const sc=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(-50%,-50%) scale(${sc})`;}
+addEventListener('resize',fit);fit();
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let t0=null;
+function loop(now){if(t0===null)t0=now;render(still?5.3:((now-t0)/1000)%16);if(!still)requestAnimationFrame(loop);}
+document.fonts.ready.then(()=>requestAnimationFrame(loop));
+// keep the videos going if the browser paused them (e.g. tab switch)
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)document.querySelectorAll('video').forEach(v=>v.play().catch(()=>{}));});
+</script></body></html>
