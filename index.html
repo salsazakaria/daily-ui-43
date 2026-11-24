@@ -16,7 +16,8 @@
 @font-face{font-family:GM;src:url(assets/fonts/GeistMono-Regular.woff2);font-weight:400}
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#EEF4F7;font-family:G;color:#161616;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
-#bg{position:fixed;inset:0;width:100vw;height:100vh;object-fit:cover;display:block;background:#EEF4F7 url(assets/img/bg-poster.jpg) center/cover}
+#bg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#EEF4F7 url(assets/img/bg-poster.jpg) center/cover}
+#wrap{position:fixed;inset:0;overflow:hidden}
 #stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%);transform-origin:50% 50%}
 #kit{position:absolute;left:96px;top:0;height:917.1px;display:flex;gap:10.2px;align-items:center;transform:scale(1.1776);transform-origin:0 0}
 .col{display:flex;flex-direction:column;gap:10.2px}
@@ -36,10 +37,16 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#EEF4F7;fon
 .chip{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:10px;background:rgba(247,247,247,.85);font-size:12px;font-weight:500}
 .tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.85);box-shadow:inset 0 0 0 1px #EDEDED;font-size:10px;font-weight:500}
 .hr{height:1px;background:rgba(0,0,0,.06)}
+#hint{display:none;position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translate(-50%,8px);z-index:5;align-items:center;gap:8px;padding:10px 16px;border-radius:99px;white-space:nowrap;
+      background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(24px) saturate(1.25);backdrop-filter:blur(24px) saturate(1.25);box-shadow:inset 0 0 0 1px rgba(255,255,255,.6),0 10px 30px rgba(40,70,110,.12);
+      font-size:13px;font-weight:500;color:#161616;opacity:0;transition:opacity .5s ease,transform .5s ease;pointer-events:none}
+#hint.on{opacity:1;transform:translate(-50%,0)}
+@media (pointer:coarse) and (max-width:900px){#hint{display:flex}}
 .cb{width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center}
 </style></head><body>
 <video id="bg" autoplay muted loop playsinline preload="auto" poster="assets/img/bg-poster.jpg" aria-hidden="true"><source src="assets/video/bg.webm" type="video/webm"><source src="assets/video/bg.mp4" type="video/mp4"></video>
-<div id="stage"><div id="kit"></div></div>
+<div id="wrap"><div id="stage"><div id="kit"></div></div></div>
+<div id="hint" role="status"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Pinch to zoom in and out</div>
 <script>
 // ---------------- icons ----------------
 const IC={
@@ -421,9 +428,12 @@ window.render=function(t){
 };
 // ---------------- live loop ----------------
 const stage=document.getElementById('stage');
-function fit(){const sc=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(-50%,-50%) scale(${sc})`;}
+function fit(){const de=document.documentElement,sc=Math.min(de.clientWidth/1920,de.clientHeight/1080);stage.style.transform=`translate(-50%,-50%) scale(${sc})`;}
 addEventListener('resize',fit);fit();
 const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+// phone-only zoom hint: shows once on load, fades after a few seconds or on first touch
+const hint=document.getElementById('hint');
+if(getComputedStyle(hint).display!=='none'){const off=()=>hint.classList.remove('on');setTimeout(()=>hint.classList.add('on'),900);setTimeout(off,5500);addEventListener('touchstart',()=>setTimeout(off,600),{once:true,passive:true});}
 let t0=null;
 function loop(now){if(t0===null)t0=now;render(still?5.3:((now-t0)/1000)%16);if(!still)requestAnimationFrame(loop);}
 document.fonts.ready.then(()=>requestAnimationFrame(loop));
